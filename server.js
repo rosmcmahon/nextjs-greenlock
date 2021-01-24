@@ -1,5 +1,3 @@
-
-
 const greenlock = require('greenlock-express')
 const path = require('path')
 
@@ -26,30 +24,33 @@ greenlock
 
 function httpsWorker(glx) {
 	nextApp.prepare().then(() => {
-		// Note:
-		// You must ALSO listen on port 80 for ACME HTTP-01 Challenges
-		// (the ACME and http->https middleware are loaded by glx.httpServer)
-		var httpServer = glx.httpServer(handler);
-		httpServer.listen(80, "0.0.0.0", function() {
-				console.info("Listening on ", httpServer.address());
-		});
-		// Get the raw https server:
-		var httpsServer = glx.httpsServer(null, handler);
+		if(dev){
+			let httpServer = glx.httpServer((req, res) => {
+				const parsedUrl = parse(req.url, true)
+				nextHandler(req, res, parsedUrl)
+			});
+			httpServer.listen(3000, "0.0.0.0", function() {
+					console.info("Dev mode. Listening on ", httpServer.address());
+			});
+		} else {
 
-		httpsServer.listen(443, "0.0.0.0", function() {
-				console.info("Listening on ", httpsServer.address());
-		});
+			// Note: You must ALSO listen on port 80 for ACME HTTP-01 Challenges
+			// (the ACME and http->https middleware are loaded by glx.httpServer)
+			let httpServer = glx.httpServer();
+			httpServer.listen(80, "0.0.0.0", function() {
+					console.info("Listening on ", httpServer.address(), " but redirecting to https");
+			});
+			// Get the raw https server:
+			let httpsServer = glx.httpsServer(null, (req, res) => {
+				const parsedUrl = parse(req.url, true)
+				nextHandler(req, res, parsedUrl)
+			});
+
+			httpsServer.listen(443, "0.0.0.0", function() {
+					console.info("Listening on ", httpsServer.address());
+			});
+		}
 	})
 }
-
-const handler = (req, res) => {
-	// Be sure to pass `true` as the second argument to `url.parse`.
-	// This tells it to parse the query portion of the URL.
-	const parsedUrl = parse(req.url, true)
-	nextHandler(req, res, parsedUrl)
-}
-
-
-
 
 

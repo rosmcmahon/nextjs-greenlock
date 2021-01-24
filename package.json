@@ -2,6 +2,7 @@
   "name": "with-typescript",
   "version": "1.0.0",
   "scripts": {
+    "adding": "npm run build && npm start",
     "dev": "ts-node server.js",
     "build": "next build",
     "start": "NODE_ENV=production ts-node server.js",
