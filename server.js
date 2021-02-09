@@ -13,6 +13,17 @@ const dev = process.env.NODE_ENV !== 'production'
 const nextApp = next({ dev })
 const nextHandler = nextApp.getRequestHandler()
 
+const expressRateLimit = require('express-rate-limit')
+const limiter = expressRateLimit({
+	windowMs: 5 * 60 * 1000,
+	max: 3,
+	message: "Sorry, you have made too many requests.",
+	headers: false,
+})
+
+
+
+
 greenlock
 	.init({
 		packageRoot: __dirname,
@@ -26,11 +37,15 @@ function httpsWorker(glx) {
 	nextApp.prepare().then(() => {
 		if(dev){
 			let httpServer = glx.httpServer((req, res) => {
+
 				const parsedUrl = parse(req.url, true)
 				nextHandler(req, res, parsedUrl)
 			});
-			httpServer.listen(3000, "0.0.0.0", function() {
-					console.info("Dev mode. Listening on ", httpServer.address());
+
+			httpServer.use('/', limiter)
+
+			httpServer.listen(4000, "0.0.0.0", function() {
+					console.info("Dev mode. Listening on ", httpServer.address() + 'http://localhost:4000');
 			});
 		} else {
 
