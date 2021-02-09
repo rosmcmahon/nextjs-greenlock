@@ -1,6 +1,15 @@
 const greenlock = require('greenlock-express')
 const { parse } = require('url')
 const next = require('next')
+const Prometheus = require('prom-client')
+
+const metricsInterval = Prometheus.collectDefaultMetrics()
+const httpRequestDurationMicroseconds = new Prometheus.Histogram({
+  name: "http_request_duration_ms",
+  help: "Duration of HTTP requests in ms",
+  labelNames: ["method", "route", "code"],
+  buckets: [0.1, 5, 15, 50, 100, 200, 300, 400, 500] // buckets for response time from 0.1ms to 500ms
+})
 
 const dev = process.env.NODE_ENV !== 'production'
 const nextApp = next({ dev })
@@ -15,13 +24,18 @@ greenlock
 	})
 	.ready(httpsWorker)
 
+const handlerA = (req, res) => {
+	
+	// const parsedUrl = parse(req.url, true)
+	nextHandler(req, res) //, parsedUrl)
+}
+
 function httpsWorker(glx) {
 	nextApp.prepare().then(() => {
+
 		if(dev){
-			let httpServer = glx.httpServer((req, res) => {
-				const parsedUrl = parse(req.url, true)
-				nextHandler(req, res, parsedUrl)
-			});
+			let httpServer = glx.httpServer(handlerA)
+
 			httpServer.listen(4000, "0.0.0.0", function() {
 				console.info("Dev mode. Listening on ", httpServer.address(), 'http://localhost:4000');
 			});
@@ -33,10 +47,7 @@ function httpsWorker(glx) {
 				console.info("Listening on ", httpServer.address(), " but redirecting to https");
 			});
 			// Get the raw https server:
-			let httpsServer = glx.httpsServer(null, (req, res) => {
-				const parsedUrl = parse(req.url, true)
-				nextHandler(req, res, parsedUrl)
-			});
+			let httpsServer = glx.httpsServer(null, handlerA);
 
 			httpsServer.listen(443, "0.0.0.0", function() {
 				console.info("Listening on ", httpsServer.address());
