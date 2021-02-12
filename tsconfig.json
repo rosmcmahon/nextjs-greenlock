@@ -7,7 +7,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["dom", "es2017"],
-    "module": "esnext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
@@ -16,8 +16,9 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
+    "typeRoots": ["custom_typings"],
     "target": "esnext"
   },
   "exclude": ["node_modules"],
-  "include": ["**/*.ts", "**/*.tsx", "server.js"]
+  "include": ["**/*.ts", "**/*.tsx", "server.ts"]
 }

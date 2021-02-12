@@ -1,16 +1,10 @@
-const greenlock = require('greenlock-express')
-const { parse } = require('url')
-const next = require('next')
-const Prometheus = require('prom-client')
-
-Prometheus.collectDefaultMetrics()
-
-const httpRequestDurationMicroseconds = new Prometheus.Histogram({
-  name: "http_request_duration_ms",
-  help: "Duration of HTTP requests in ms",
-  labelNames: ["method", "route", "code"],
-  buckets: [0.1, 5, 15, 50, 100, 200, 300, 400, 500] // buckets for response time from 0.1ms to 500ms
-})
+// const greenlock = require('greenlock-express')
+import greenlock from 'greenlock-express'
+import { parse } from 'url'
+import next from 'next'
+// const getMetrics = require('./prometheus.mjs').getMetrics
+import { getMetrics } from './prometheus'
+import { IncomingMessage, ServerResponse,  } from 'http'
 
 const dev = process.env.NODE_ENV !== 'production'
 const nextApp = next({ dev })
@@ -18,26 +12,26 @@ const nextHandler = nextApp.getRequestHandler()
 
 greenlock
 	.init({
-		packageRoot: __dirname,
+		packageRoot: './',//__dirname,
 		configDir: './greenlock-manager',
 		maintainerEmail: 'rosmcmahon@gmail.com',
 		cluster: false,
 	})
 	.ready(httpsWorker)
 
-const handlerA = async (req, res) => {
-	const parsedUrl = parse(req.url, true)
-	const { pathname, query } = parsedUrl
+const handlerA = async (req: IncomingMessage, res: ServerResponse) => {
+	const parsedUrl = parse(req.url!, true)
+	const { pathname, /*query*/ } = parsedUrl
 
 	if(pathname === '/metrics'){
 		res.writeHead(200, { 'Content-Type': 'text/plain'})
-		res.end(await Prometheus.register.metrics())
+		res.end(await getMetrics())
 	}
 	
 	nextHandler(req, res) //, parsedUrl)
 }
 
-function httpsWorker(glx) {
+function httpsWorker(glx: greenlock.glx) {
 	nextApp.prepare().then(() => {
 
 		if(dev){
