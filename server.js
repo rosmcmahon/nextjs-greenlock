@@ -3,7 +3,8 @@ const { parse } = require('url')
 const next = require('next')
 const Prometheus = require('prom-client')
 
-const metricsInterval = Prometheus.collectDefaultMetrics()
+Prometheus.collectDefaultMetrics()
+
 const httpRequestDurationMicroseconds = new Prometheus.Histogram({
   name: "http_request_duration_ms",
   help: "Duration of HTTP requests in ms",
@@ -24,9 +25,15 @@ greenlock
 	})
 	.ready(httpsWorker)
 
-const handlerA = (req, res) => {
+const handlerA = async (req, res) => {
+	const parsedUrl = parse(req.url, true)
+	const { pathname, query } = parsedUrl
+
+	if(pathname === '/metrics'){
+		res.writeHead(200, { 'Content-Type': 'text/plain'})
+		res.end(await Prometheus.register.metrics())
+	}
 	
-	// const parsedUrl = parse(req.url, true)
 	nextHandler(req, res) //, parsedUrl)
 }
 
