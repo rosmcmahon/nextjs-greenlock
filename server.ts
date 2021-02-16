@@ -1,9 +1,7 @@
-// const greenlock = require('greenlock-express')
 import greenlock from 'greenlock-express'
 import { parse } from 'url'
 import next from 'next'
-// const getMetrics = require('./prometheus.mjs').getMetrics
-import { getMetrics } from './prometheus'
+import { register } from './prometheus'
 import { IncomingMessage, ServerResponse,  } from 'http'
 
 const dev = process.env.NODE_ENV !== 'production'
@@ -25,7 +23,7 @@ const handlerA = async (req: IncomingMessage, res: ServerResponse) => {
 
 	if(pathname === '/metrics'){
 		res.writeHead(200, { 'Content-Type': 'text/plain'})
-		res.end(await getMetrics())
+		res.end(await register.metrics())
 	}
 	
 	nextHandler(req, res) //, parsedUrl)
