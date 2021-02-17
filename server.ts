@@ -1,6 +1,7 @@
-const greenlock = require('greenlock-express')
-const { parse } = require('url')
-const next = require('next')
+import greenlock from 'greenlock-express'
+import { parse } from 'url'
+import next from 'next'
+import { IncomingMessage, ServerResponse,  } from 'http'
 
 const dev = process.env.NODE_ENV !== 'production'
 const nextApp = next({ dev })
@@ -15,13 +16,24 @@ greenlock
 	})
 	.ready(httpsWorker)
 
-function httpsWorker(glx) {
+const mainHandler = async (req: IncomingMessage, res: ServerResponse) => {
+	const parsedUrl = parse(req.url!, true)
+	const { pathname, /*query*/ } = parsedUrl
+
+	if(pathname === '/hello'){
+		res.writeHead(200, { 'Content-Type': 'text/plain'})
+		res.end('Hello, world')
+	}
+	
+	nextHandler(req, res) //, parsedUrl)
+}
+
+function httpsWorker(glx: greenlock.glx) {
 	nextApp.prepare().then(() => {
+
 		if(dev){
-			let httpServer = glx.httpServer((req, res) => {
-				const parsedUrl = parse(req.url, true)
-				nextHandler(req, res, parsedUrl)
-			});
+			let httpServer = glx.httpServer(mainHandler)
+
 			httpServer.listen(4000, "0.0.0.0", function() {
 				console.info("Dev mode. Listening on ", httpServer.address(), 'http://localhost:4000');
 			});
@@ -33,10 +45,7 @@ function httpsWorker(glx) {
 				console.info("Listening on ", httpServer.address(), " but redirecting to https");
 			});
 			// Get the raw https server:
-			let httpsServer = glx.httpsServer(null, (req, res) => {
-				const parsedUrl = parse(req.url, true)
-				nextHandler(req, res, parsedUrl)
-			});
+			let httpsServer = glx.httpsServer(null, mainHandler);
 
 			httpsServer.listen(443, "0.0.0.0", function() {
 				console.info("Listening on ", httpsServer.address());

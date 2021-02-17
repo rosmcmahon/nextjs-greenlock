@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "adding": "npm run build && npm start",
-    "dev": "ts-node server.js",
+    "dev": "ts-node server.ts",
     "build": "next build",
-    "start": "NODE_ENV=production ts-node server.js",
+    "start": "NODE_ENV=production ts-node server.ts",
     "type-check": "tsc"
   },
   "dependencies": {
