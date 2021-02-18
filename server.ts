@@ -1,7 +1,7 @@
 import greenlock from 'greenlock-express'
 import { parse } from 'url'
 import next from 'next'
-import { register } from './prometheus'
+import { register } from 'prom-client'
 import { IncomingMessage, ServerResponse,  } from 'http'
 
 const dev = process.env.NODE_ENV !== 'production'
@@ -16,6 +16,10 @@ greenlock
 		cluster: false,
 	})
 	.ready(httpsWorker)
+
+// collectDefaultMetrics({
+// 	prefix: 'example_prefix_'
+// })
 
 const handlerA = async (req: IncomingMessage, res: ServerResponse) => {
 	const parsedUrl = parse(req.url!, true)

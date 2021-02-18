@@ -1,14 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Counter } from 'prom-client'
-import { register } from '../../prometheus'
+
+const myCounter = new Counter({
+  name: "my_counter_example",
+  help: 'my_counter_example_help'
+})
 
 const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
   try {
-    let c = register.getSingleMetric('my_counter_name') as Counter<string>
-    c.inc()
+    myCounter.inc()
 
 		res.setHeader('Content-Type', 'text/plain')
-    res.status(200).send('incremented myCounter')
+    res.status(200).send('myCounter.inc(), that\'s all I know')
 		
   } catch (err) {
     res.status(500).json({ statusCode: 500, message: err.message })
