@@ -2,7 +2,7 @@ import greenlock from 'greenlock-express'
 import { parse } from 'url'
 import next from 'next'
 import { register } from 'prom-client'
-import { IncomingMessage, ServerResponse,  } from 'http'
+import http, { IncomingMessage, ServerResponse } from 'http'
 
 const dev = process.env.NODE_ENV !== 'production'
 const nextApp = next({ dev })
@@ -25,9 +25,9 @@ const handlerA = async (req: IncomingMessage, res: ServerResponse) => {
 	const parsedUrl = parse(req.url!, true)
 	const { pathname, /*query*/ } = parsedUrl
 
-	if(pathname === '/metrics'){
+	if(pathname === '/custom'){
 		res.writeHead(200, { 'Content-Type': 'text/plain'})
-		res.end(await register.metrics())
+		res.end('this a the custom route')
 	}
 	
 	nextHandler(req, res) //, parsedUrl)
@@ -36,8 +36,14 @@ const handlerA = async (req: IncomingMessage, res: ServerResponse) => {
 function httpsWorker(glx: greenlock.glx) {
 	nextApp.prepare().then(() => {
 
+		const httpMetrics = http.createServer(async(_req: IncomingMessage, res: ServerResponse) => {
+			res.writeHead(200, { 'Content-Type': 'text/plain'})
+			res.end(await register.metrics())
+		})
+		httpMetrics.listen(9100, "0.0.0.0", () => console.log('metrics on http://localhost:9100'))
+
 		if(dev){
-			let httpServer = glx.httpServer(handlerA)
+			let httpServer = http.createServer(handlerA)
 
 			httpServer.listen(4000, "0.0.0.0", function() {
 				console.info("Dev mode. Listening on ", httpServer.address(), 'http://localhost:4000');
