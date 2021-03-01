@@ -16,7 +16,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "typeRoots": ["custom_typings"],
+    "typeRoots": ["node_modules/@types", "custom_typings"],
     "target": "esnext"
   },
   "exclude": ["node_modules"],
