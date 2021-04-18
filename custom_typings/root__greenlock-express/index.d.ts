@@ -1,4 +1,4 @@
-declare module "greenlock-express" {
+declare module "@root/greenlock-express" {
 	import * as Http from "http";
 	import * as Https from "https";
 	import * as Http2 from "http2";

@@ -1,4 +1,4 @@
-import greenlock from 'greenlock-express'
+import * as greenlock from '@root/greenlock-express'
 import { parse } from 'url'
 import next from 'next'
 import { IncomingMessage, ServerResponse,  } from 'http'
